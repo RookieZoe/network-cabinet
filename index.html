@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Network Cabinet</title>
+    <%- injectScript %>
+    <link rel="icon" href="/favicon.ico?t=20241009" />
+
+    <meta
+      name="description"
+      content="A custom-designed, non-standard network cabinet integrated into a cabinet."
+    />
+    <%- injectCss %>
+  </head>
+  <body style="padding: 0; margin: 0; border: 0">
+    <noscript>
+      <strong>
+        We're sorry but our system doesn't work properly without JavaScript enabled. Please
+        enable it to continue.
+      </strong>
+    </noscript>
+    <div id="app">
+      <div
+        style="
+          text-align: center;
+          font-size: 22px;
+          color: #757575;
+          line-height: 100vh;
+          background-color: #f5f5f5;
+        "
+      >
+        Loading...
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+REPO_DIR=$(
+  cd "$(dirname "$0")/../" || exit 1
+  pwd
+)
+
+cd "$REPO_DIR" || exit 1
+# yarn test
+
+"$REPO_DIR/.husky/run-git-hooks" $? "$(basename "$0")"
