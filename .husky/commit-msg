@@ -1,0 +1,39 @@
+#!/bin/sh
+
+REPO_DIR=$(
+  cd "$(dirname "$0")/../" || exit 1
+  pwd
+)
+
+printError() {
+  printf '\033[0;101mERROR:\033[0m '
+  printf '\033[0;31m提交消息格式错误:\033[0m\n'
+  printf '\033[0;31m%s\033[0m\n' "$2"
+  printf "\033[0;106m正确的提交消息格式:\033[0m\n"
+  printf '\033[0;32m([消息类型]): (80 字符以内的消息描述)\033[0m\n'
+  printf '\033[0;106m示例:\033[0m\n'
+  printf '\033[0;32m[chore]: add hook tool "husky"\033[0m\n\n'
+  printf '\033[0;106m消息类型:\033[0m\n'
+  printf '\033[0;32mchore: 完善工具链、添加新依赖等\033[0m\n'
+  printf '\033[0;32mdocs: 文档相关\033[0m\n'
+  printf '\033[0;32mfeat: 新增功能\033[0m\n'
+  printf '\033[0;32mfix: BUG 修复\033[0m\n'
+  printf '\033[0;32mperformance: 性能优化\033[0m\n'
+  printf '\033[0;32mrefactor: 代码重构\033[0m\n'
+  printf '\033[0;32mrevert: 代码回滚\033[0m\n'
+  printf '\033[0;32mstyle: 样式修改\033[0m\n'
+  printf '\033[0;32mtemp: 放在本地的临时提交，推送前记得修改成正确的消息类型\033[0m\n'
+
+  exit 1
+}
+
+checkMsgValid() {
+  if ! echo "$1" | grep -qE "^\[(chore|docs|feat|fix|performance|refactor|revert|style|temp)\]: .{1,80}$"; then
+    return 1
+  fi
+  return 0
+}
+
+msg=$(head -n 1 <"$1")
+checkMsgValid "$msg" || printError "$msg"
+"$REPO_DIR/.husky/run-git-hooks" $? "$(basename "$0")" "$1"

@@ -1,0 +1,13 @@
+#!/bin/sh
+GIT_HOOKS_DIR=$(
+  cd "$(dirname "$0")/../.git/hooks/" || exit 1
+  pwd
+)
+
+if [ ! "$1" -eq 0 ]; then
+  exit 1
+fi
+
+if [ -e "$GIT_HOOKS_DIR/$2" ]; then
+  "$GIT_HOOKS_DIR/$2" "$3"
+fi
