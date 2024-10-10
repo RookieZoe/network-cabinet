@@ -16,9 +16,11 @@
     "postinstall": "is-ci || (husky .husky && cp ./.vscode/vite.config.proxy.ts ./)"
   },
   "dependencies": {
+    "@react-three/fiber": "8.17.10",
     "classnames": "2.5.1",
     "dompurify": "3.1.7",
     "nprogress": "0.2.0",
+    "rc-util": "5.43.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "three": "0.169.0"
