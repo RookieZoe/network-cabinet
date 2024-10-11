@@ -16,14 +16,16 @@
     "postinstall": "is-ci || (husky .husky && cp ./.vscode/vite.config.proxy.ts ./)"
   },
   "dependencies": {
+    "@react-three/drei": "9.114.3",
     "@react-three/fiber": "8.17.10",
     "classnames": "2.5.1",
     "dompurify": "3.1.7",
+    "maath": "0.10.8",
     "nprogress": "0.2.0",
-    "rc-util": "5.43.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "three": "0.169.0"
+    "three": "0.169.0",
+    "valtio": "2.0.0"
   },
   "devDependencies": {
     "@types/node": "22.7.5",
@@ -45,7 +47,7 @@
     "less": "4.2.0",
     "postcss": "8.4.47",
     "postcss-flexbugs-fixes": "5.0.2",
-    "postcss-preset-env": "10.0.6",
+    "postcss-preset-env": "10.0.7",
     "prettier": "3.3.3",
     "rimraf": "6.0.1",
     "typescript": "5.6.3",
