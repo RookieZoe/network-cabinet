@@ -1,36 +1,37 @@
-import { Canvas } from '@react-three/fiber';
-import { ContactShadows, Environment } from '@react-three/drei';
+import type { Group } from 'three';
+import { useRef } from 'react';
 
-import { FanDock } from './cooling-system/fan-dock';
+// import { useFrame } from '@react-three/fiber';
+import { get3DModel, UNIT } from './model-factory';
 
-export default function NetworkCabinet() {
+const Cabinet = get3DModel('/gltf/cabinet.glb');
+const FanDock = get3DModel('/gltf/cooling-system/fan-dock.glb');
+const AirDuct = get3DModel('/gltf/cooling-system/air-duct.glb');
+
+export default function NetworkCabinet(props: JSX.IntrinsicElements['group']) {
+  const ref = useRef<Group>(undefined!);
+
+  // useFrame(state => {
+  //   const t = state.clock.getElapsedTime();
+  //   ref?.current?.rotation.set(
+  //     Math.sin(t / 2) / 2,
+  //     Math.cos(t / 4) / 2,
+  //     0.15 + Math.sin(t / 2) / 8
+  //   );
+  //   ref?.current?.position?.set(
+  //     ref?.current?.position.x,
+  //     ref?.current?.position.y,
+  //     (0.5 + Math.cos(t / 2)) / 7
+  //   );
+  // });
+
   return (
-    <Canvas
-      dpr={[1, 2]}
-      style={{ flex: '1' }}
-      eventSource={document.getElementById('app')!}
-      eventPrefix='client'
-      camera={{ position: [0, 0, 4], fov: 10 }}
-    >
-      <ambientLight intensity={0.2} />
-      <spotLight
-        intensity={0.2}
-        angle={0.1}
-        penumbra={0.2}
-        position={[10, 15, -5]}
-        castShadow
-      />
-      <Environment preset='studio' background blur={1} />
-      <ContactShadows
-        resolution={512}
-        position={[0, 0, 0]}
-        opacity={1}
-        scale={10}
-        blur={2}
-        far={0.8}
-      />
-
-      <FanDock rotation={[Math.PI / 1.6, 0.3, 0]} />
-    </Canvas>
+    <group ref={ref} {...props} dispose={null}>
+      <Cabinet unit={UNIT.mm} />
+      <AirDuct unit={UNIT.mm} offset={[20, 1340, 0]} />
+      <FanDock unit={UNIT.mm} offset={[20, 1320, 0]} />
+      <FanDock unit={UNIT.mm} offset={[20, 200, 0]} />
+      <AirDuct unit={UNIT.mm} offset={[20, 100, 0]} zReverse />
+    </group>
   );
 }
