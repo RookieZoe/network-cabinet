@@ -12,6 +12,7 @@ export enum UNIT {
 type Props3D = JSX.IntrinsicElements['group'] & {
   unit?: UNIT;
   offset?: [number, number, number];
+  opacity?: number;
   zReverse?: boolean;
   xReverse?: boolean;
   yReverse?: boolean;
@@ -28,6 +29,7 @@ export const get3DModel = (gltfPath: string) => {
     const {
       unit = UNIT.m,
       offset = [0, 0, 0],
+      opacity = 1,
       zReverse = false,
       xReverse = false,
       yReverse = false,
@@ -64,11 +66,27 @@ export const get3DModel = (gltfPath: string) => {
               return null;
             }
 
+            const material = (meshNode as Mesh).material;
+
+            if (Array.isArray(material)) {
+              material.forEach(m => {
+                m.setValues({
+                  opacity: 1 - opacity > 0.001 ? opacity : 1,
+                  transparent: 1 - opacity > 0.001
+                });
+              });
+            } else {
+              material.setValues({
+                opacity: 1 - opacity > 0.001 ? opacity : 1,
+                transparent: 1 - opacity > 0.001
+              });
+            }
+
             return (
               <mesh
                 key={index}
                 geometry={(meshNode as Mesh).geometry}
-                material={(meshNode as Mesh).material}
+                material={material}
                 position={positionOffset}
                 receiveShadow
                 rotation={[
