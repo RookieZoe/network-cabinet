@@ -1,6 +1,7 @@
-import type { Mesh } from 'three';
+import type { Mesh, Vector3Tuple } from 'three';
 import { useGLTF } from '@react-three/drei';
 import { useMemo } from 'react';
+import type { ThreeElements } from '@react-three/fiber';
 
 export enum UNIT {
   m = 1,
@@ -9,7 +10,7 @@ export enum UNIT {
   mm = 0.001
 }
 
-type Props3D = JSX.IntrinsicElements['group'] & {
+type Props3D = ThreeElements['group'] & {
   unit?: UNIT;
   offset?: [number, number, number];
   opacity?: number;
@@ -89,11 +90,13 @@ export const get3DModel = (gltfPath: string) => {
                 material={material}
                 position={positionOffset}
                 receiveShadow
-                rotation={[
-                  xReverse ? Math.PI : 0,
-                  yReverse ? Math.PI : 0,
-                  zReverse ? Math.PI : 0
-                ]}
+                rotation={
+                  [
+                    xReverse ? Math.PI : 0,
+                    yReverse ? Math.PI : 0,
+                    zReverse ? Math.PI : 0
+                  ] as Vector3Tuple
+                }
               />
             );
           })}

@@ -1,39 +1,63 @@
 import './global.less';
-import { ReactNode, StrictMode } from 'react';
+import { memo, StrictMode, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-
-import * as THREE from 'three';
-import { Canvas } from '@react-three/fiber';
-import { CameraControls, ContactShadows, Environment } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
+import {
+  AccumulativeShadows,
+  CameraControls,
+  ContactShadows,
+  Environment,
+  Grid,
+  RandomizedLight
+} from '@react-three/drei';
 
 import NetworkCabinet from './components/network-cabinet';
 
-const World = (props: { children: ReactNode }) => {
+const Shadows = memo(() => (
+  <AccumulativeShadows
+    temporal
+    frames={100}
+    color='#9d4b4b'
+    colorBlend={0.5}
+    alphaTest={0.9}
+    scale={20}
+  >
+    <RandomizedLight amount={8} radius={4} position={[5, 5, -10]} />
+  </AccumulativeShadows>
+));
+
+function Ground() {
+  const gridConfig = {
+    cellSize: 0.01,
+    cellThickness: 0.8,
+    cellColor: '#6f6f6f',
+    sectionSize: 0.1,
+    sectionThickness: 1,
+    sectionColor: '#9d4b4b',
+    fadeDistance: 30,
+    fadeStrength: 1,
+    followCamera: false,
+    infiniteGrid: true
+  };
+  return <Grid position={[0, -0.001, 0]} args={[10.5, 10.5]} {...gridConfig} />;
+}
+
+const World = () => {
+  const cameraControlsRef = useRef<CameraControls | undefined>(undefined!);
+
+  useFrame(_state => {
+    cameraControlsRef?.current?.truck?.(0, -0.01, true);
+  });
+
   return (
-    <Canvas
-      dpr={[1, 2]}
-      style={{ flex: '1' }}
-      eventSource={document.getElementById('app')!}
-      eventPrefix='client'
-      camera={{
-        fov: 8,
-        position: [6.6, 8.6, 6.2],
-        viewport: new THREE.Vector4(0, 6, 0, 0)
-      }}
-    >
+    <>
+      <Ground />
+      <Shadows />
+      <spotLight position={[5, 5, 5]} penumbra={1} />
+      <axesHelper />
       <ambientLight intensity={0.2} />
-      <spotLight
-        intensity={0.1}
-        // angle={0.1}
-        penumbra={0.2}
-        position={[-10, 15, 10]}
-        distance={20}
-        castShadow
-      />
       <Environment preset='studio' background blur={10} />
-      <CameraControls />
-      //here axes helper is applied
-      <primitive object={new THREE.AxesHelper(100)} />
+      <CameraControls ref={cameraControlsRef as any} />
       <ContactShadows
         resolution={512}
         position={[0, 0, 0]}
@@ -42,8 +66,7 @@ const World = (props: { children: ReactNode }) => {
         blur={2}
         far={0.8}
       />
-      {props.children}
-    </Canvas>
+    </>
   );
 };
 
@@ -55,8 +78,16 @@ createRoot(document.getElementById('app')!).render(
       </h1>
       <h2>Still Working 🚧</h2>
     </div>
-    <World>
+    <Canvas
+      dpr={[1, 2]}
+      style={{ flex: '1' }}
+      eventSource={document.getElementById('app')!}
+      eventPrefix='client'
+      shadows
+      camera={{ position: [0.275, 5, 5], fov: 30, near: 0.1, far: 100 }}
+    >
+      <World />
       <NetworkCabinet />
-    </World>
+    </Canvas>
   </StrictMode>
 );

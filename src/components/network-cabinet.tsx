@@ -1,8 +1,9 @@
 import type { Group } from 'three';
-import { useRef } from 'react';
-
-// import { useFrame } from '@react-three/fiber';
+import { useRef, useState } from 'react';
+import { useFrame } from '@react-three/fiber';
+import type { ThreeElements } from '@react-three/fiber';
 import { get3DModel, UNIT } from './model-factory';
+import { easing } from 'maath';
 
 const Door = get3DModel('/gltf/door.glb');
 const Cabinet = get3DModel('/gltf/cabinet.glb');
@@ -15,28 +16,33 @@ const Tray1U = get3DModel('/gltf/rackmount/tray-1u.glb');
 
 const ONE_UNIT = 44.45;
 
-export default function NetworkCabinet(props: JSX.IntrinsicElements['group']) {
+export default function NetworkCabinet(props: ThreeElements['group']) {
   const ref = useRef<Group>(undefined!);
+  const [hovered, setHovered] = useState(false);
 
-  // useFrame(state => {
-  //   const t = state.clock.getElapsedTime();
-  //   ref?.current?.rotation.set(
-  //     Math.sin(t / 2) / 2,
-  //     Math.cos(t / 4) / 2,
-  //     0.15 + Math.sin(t / 2) / 8
-  //   );
-  //   ref?.current?.position?.set(
-  //     ref?.current?.position.x,
-  //     ref?.current?.position.y,
-  //     (0.5 + Math.cos(t / 2)) / 7
-  //   );
-  // });
+  useFrame((_, delta) => {
+    !hovered && easing.damp3(ref?.current?.scale, [1, 1, 1], 0.5, delta);
+    hovered && easing.damp3(ref?.current?.scale, [1.5, 1.5, 1.5], 0.5, delta);
+  });
 
   return (
-    <group ref={ref} {...props} dispose={null}>
+    <group
+      ref={ref}
+      {...props}
+      dispose={null}
+      onPointerOver={e => {
+        // e.eventObject
+        console.log('onPointerOver', e);
+        setHovered(true);
+      }}
+      onPointerOut={e => {
+        console.log('onPointerOut', e);
+        setHovered(false);
+      }}
+    >
       <group userData={{ title: 'Cabinet' }}>
         <Cabinet unit={UNIT.mm} />
-        <group position={[0, 0, 0.5]} dispose={null}>
+        <group dispose={null}>
           <Door unit={UNIT.mm} offset={[0, 0, 330]} />
           <AirNet unit={UNIT.mm} offset={[25, 1350, 336]} userData={{ title: 'AirNet Up' }} />
           <AirNet unit={UNIT.mm} offset={[25, 110, 336]} userData={{ title: 'AirNet Down' }} />
