@@ -30,6 +30,7 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
       ref={ref}
       {...props}
       dispose={null}
+      position={[-0.15, 0.1, -0.1]}
       onPointerOver={e => {
         // e.eventObject
         console.log('onPointerOver', e);
