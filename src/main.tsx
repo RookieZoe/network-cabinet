@@ -1,14 +1,13 @@
 import './global.less';
 import { memo, StrictMode, useRef, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import {
   AccumulativeShadows,
   CameraControls,
   ContactShadows,
   Environment,
-  RandomizedLight,
-  Html
+  RandomizedLight
 } from '@react-three/drei';
 
 import NetworkCabinet from './components/network-cabinet';
@@ -38,9 +37,11 @@ const World = () => {
   return (
     <>
       <Shadows />
-      <spotLight position={[5, 5, 5]} penumbra={1} />
-      <ambientLight intensity={0.2} />
-      <Environment preset='studio' background blur={10} />
+      <spotLight position={[5, 5, 5]} penumbra={1} intensity={0.8} />
+      <ambientLight intensity={0.3} />
+      <Environment preset='studio' background blur={10} resolution={256}>
+        <color attach='background' args={['#1a1a1a']} />
+      </Environment>
       <CameraControls ref={cameraControlsRef as any} onEnd={e => console.log(e)} makeDefault />
       <ContactShadows
         resolution={512}
@@ -54,8 +55,38 @@ const World = () => {
   );
 };
 
-createRoot(document.getElementById('app')!).render(
-  <StrictMode>
+const App = () => (
+  <>
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        padding: '20px',
+        zIndex: 10000,
+        pointerEvents: 'none'
+      }}
+    >
+      <div
+        style={{
+          pointerEvents: 'auto',
+          fontSize: '24px',
+          fontWeight: 'bold',
+          userSelect: 'none'
+        }}
+      >
+        <a
+          href='https://github.com/RookieZoe/network-cabinet'
+          style={{ color: '#ffffff', textDecoration: 'none' }}
+          target='_blank'
+        >
+          Network Cabinet
+        </a>
+        <div style={{ fontSize: '18px', color: '#999', marginTop: '8px' }}>
+          Still Working 🚧
+        </div>
+      </div>
+    </div>
     <Canvas
       dpr={[1, 2]}
       style={{ flex: '1' }}
@@ -69,38 +100,14 @@ createRoot(document.getElementById('app')!).render(
         far: 100
       }}
     >
-      <Html
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          padding: '20px'
-        }}
-        transform={false}
-        occlude={false}
-        prepend
-      >
-        <div
-          style={{
-            pointerEvents: 'auto',
-            fontSize: '24px',
-            fontWeight: 'bold'
-          }}
-        >
-          <a
-            href='https://github.com/RookieZoe/network-cabinet'
-            style={{ color: '#000', textDecoration: 'none' }}
-            target='_blank'
-          >
-            Network Cabinet
-          </a>
-          <div style={{ fontSize: '18px', color: '#666', marginTop: '8px' }}>
-            Still Working 🚧
-          </div>
-        </div>
-      </Html>
       <World />
       <NetworkCabinet />
     </Canvas>
+  </>
+);
+
+createRoot(document.getElementById('app')!).render(
+  <StrictMode>
+    <App />
   </StrictMode>
 );
