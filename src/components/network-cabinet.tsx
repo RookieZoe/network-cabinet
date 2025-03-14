@@ -19,10 +19,137 @@ const ONE_UNIT = 44.45;
 export default function NetworkCabinet(props: ThreeElements['group']) {
   const ref = useRef<Group>(undefined!);
   const [hovered, setHovered] = useState(false);
+  const cabinetRef = useRef<Group>(null);
+  const upperCoolingRef = useRef<Group>(null);
+  const lowerCoolingRef = useRef<Group>(null);
+  const rackmountRef = useRef<Group>(null);
+
+  const defaultPosition = [-0.15, 0.1, -0.1] as [number, number, number];
+  const defaultRotation = [0, 0, 0] as [number, number, number];
+  const damping = 0.15;
+
+  const explodeAmount = {
+    upper: {
+      position: [0, 0.5, -0.3],
+      rotation: [0.1, 0.2, 0]
+    },
+    lower: {
+      position: [0, -0.3, 0.3],
+      rotation: [-0.1, -0.2, 0]
+    },
+    rack: {
+      position: [0.4, 0, -0.2],
+      rotation: [0, 0.3, 0.1]
+    },
+    cabinet: {
+      position: [0, 0.1, 0],
+      rotation: [0, 0, 0]
+    }
+  } as const;
+
+  const setGroupTransform = (
+    group: Group | null,
+    targetPosition: [number, number, number],
+    targetRotation: [number, number, number],
+    damping: number,
+    delta: number
+  ) => {
+    if (!group) return;
+
+    // 服务器组件不参与爆炸动画
+    if (group.userData?.title === 'Server stuff') {
+      return;
+    }
+
+    group.position.lerp(
+      {
+        x: targetPosition[0],
+        y: targetPosition[1],
+        z: targetPosition[2]
+      },
+      damping * delta * 22
+    );
+
+    group.rotation.set(
+      group.rotation.x + (targetRotation[0] - group.rotation.x) * damping,
+      group.rotation.y + (targetRotation[1] - group.rotation.y) * damping,
+      group.rotation.z + (targetRotation[2] - group.rotation.z) * damping
+    );
+  };
 
   useFrame((_, delta) => {
-    !hovered && easing.damp3(ref?.current?.scale, [1, 1, 1], 0.5, delta);
-    hovered && easing.damp3(ref?.current?.scale, [1.5, 1.5, 1.5], 0.5, delta);
+    if (hovered) {
+      // 更新各组件位置和旋转
+      setGroupTransform(
+        upperCoolingRef.current,
+        [
+          defaultPosition[0] + explodeAmount.upper.position[0],
+          defaultPosition[1] + explodeAmount.upper.position[1],
+          defaultPosition[2] + explodeAmount.upper.position[2]
+        ],
+        [
+          defaultRotation[0] + explodeAmount.upper.rotation[0],
+          defaultRotation[1] + explodeAmount.upper.rotation[1],
+          defaultRotation[2] + explodeAmount.upper.rotation[2]
+        ],
+        damping,
+        delta
+      );
+
+      setGroupTransform(
+        lowerCoolingRef.current,
+        [
+          defaultPosition[0] + explodeAmount.lower.position[0],
+          defaultPosition[1] + explodeAmount.lower.position[1],
+          defaultPosition[2] + explodeAmount.lower.position[2]
+        ],
+        [
+          defaultRotation[0] + explodeAmount.lower.rotation[0],
+          defaultRotation[1] + explodeAmount.lower.rotation[1],
+          defaultRotation[2] + explodeAmount.lower.rotation[2]
+        ],
+        damping,
+        delta
+      );
+
+      setGroupTransform(
+        rackmountRef.current,
+        [
+          defaultPosition[0] + explodeAmount.rack.position[0],
+          defaultPosition[1] + explodeAmount.rack.position[1],
+          defaultPosition[2] + explodeAmount.rack.position[2]
+        ],
+        [
+          defaultRotation[0] + explodeAmount.rack.rotation[0],
+          defaultRotation[1] + explodeAmount.rack.rotation[1],
+          defaultRotation[2] + explodeAmount.rack.rotation[2]
+        ],
+        damping,
+        delta
+      );
+
+      setGroupTransform(
+        cabinetRef.current,
+        [
+          defaultPosition[0] + explodeAmount.cabinet.position[0],
+          defaultPosition[1] + explodeAmount.cabinet.position[1],
+          defaultPosition[2] + explodeAmount.cabinet.position[2]
+        ],
+        defaultRotation,
+        damping,
+        delta
+      );
+    } else {
+      // 恢复所有组件到原始位置和旋转，但不包括服务器组件
+      [
+        upperCoolingRef.current,
+        lowerCoolingRef.current,
+        rackmountRef.current,
+        cabinetRef.current
+      ].forEach(group =>
+        setGroupTransform(group, defaultPosition, defaultRotation, damping, delta)
+      );
+    }
   });
 
   return (
@@ -32,7 +159,6 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
       dispose={null}
       position={[-0.15, 0.1, -0.1]}
       onPointerOver={e => {
-        // e.eventObject
         console.log('onPointerOver', e);
         setHovered(true);
       }}
@@ -41,7 +167,7 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
         setHovered(false);
       }}
     >
-      <group userData={{ title: 'Cabinet' }}>
+      <group ref={cabinetRef} userData={{ title: 'Cabinet' }}>
         <Cabinet unit={UNIT.mm} />
         <group dispose={null}>
           <Door unit={UNIT.mm} offset={[0, 0, 330]} />
@@ -50,17 +176,17 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
         </group>
       </group>
 
-      <group userData={{ title: 'Cooling System up' }} dispose={null}>
+      <group ref={upperCoolingRef} userData={{ title: 'Cooling System up' }} dispose={null}>
         <AirDuct unit={UNIT.mm} offset={[20, 1340, 0]} />
         <FanDock unit={UNIT.mm} offset={[20, 1320, 0]} />
       </group>
 
-      <group userData={{ title: 'Cooling System down' }} dispose={null}>
+      <group ref={lowerCoolingRef} userData={{ title: 'Cooling System down' }} dispose={null}>
         <FanDock unit={UNIT.mm} offset={[20, 200, 0]} />
         <AirDuct unit={UNIT.mm} offset={[20, 100, 0]} zReverse />
       </group>
 
-      <group userData={{ title: 'Rackmount' }} dispose={null}>
+      <group ref={rackmountRef} userData={{ title: 'Rackmount' }} dispose={null}>
         <RackPost22U
           unit={UNIT.mm}
           offset={[20, 270, 217.2]}
