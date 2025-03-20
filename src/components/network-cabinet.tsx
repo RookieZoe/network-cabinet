@@ -3,7 +3,6 @@ import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { ThreeElements } from '@react-three/fiber';
 import { get3DModel, UNIT } from './model-factory';
-import { easing } from 'maath';
 
 const Door = get3DModel('/gltf/door.glb');
 const Cabinet = get3DModel('/gltf/cabinet.glb');
@@ -17,203 +16,196 @@ const Tray1U = get3DModel('/gltf/rackmount/tray-1u.glb');
 const ONE_UNIT = 44.45;
 
 export default function NetworkCabinet(props: ThreeElements['group']) {
-  const ref = useRef<Group>(undefined!);
   const [hovered, setHovered] = useState(false);
-  const cabinetRef = useRef<Group>(null);
-  const upperCoolingRef = useRef<Group>(null);
-  const lowerCoolingRef = useRef<Group>(null);
-  const rackmountRef = useRef<Group>(null);
+  const groupRef = useRef<Group>(null);
 
-  const defaultPosition = [-0.15, 0.1, -0.1] as [number, number, number];
+  // 存储所有可爆炸组件的引用
+  const explodableRefs = new Map<string, Group>();
+
+  const defaultPosition = [0, 0, 0] as [number, number, number];
   const defaultRotation = [0, 0, 0] as [number, number, number];
-  const damping = 0.15;
+  const baseDamping = 0.15;
 
-  const explodeAmount = {
-    upper: {
-      position: [0, 0.5, -0.3],
-      rotation: [0.1, 0.2, 0]
-    },
-    lower: {
-      position: [0, -0.3, 0.3],
-      rotation: [-0.1, -0.2, 0]
-    },
-    rack: {
-      position: [0.4, 0, -0.2],
-      rotation: [0, 0.3, 0.1]
-    },
-    cabinet: {
-      position: [0, 0.1, 0],
-      rotation: [0, 0, 0]
-    }
+  type ExplodeConfig = {
+    position: [number, number, number];
+    speed: number;
+  };
+
+  const explodeMap: Record<string, ExplodeConfig> = {
+    'Cabinet Door': { position: [0, 0, 0.3], speed: 1.1 },
+    'AirNet Up': { position: [0, 0, 0.5], speed: 0.9 },
+    'AirNet Down': { position: [0, 0, 0.5], speed: 0.9 },
+    'Cooling System Air Duct Up': { position: [0, 0.6, 0], speed: 1.1 },
+    'Cooling System Fan Dock Up': { position: [0, 0.5, 0], speed: 1 },
+    'Cooling System Air Duct Down': { position: [0, -0.5, 0], speed: 1.1 },
+    'Cooling System Fan Dock Down': { position: [0, -0.6, 0], speed: 1 },
+    '22U Rack Post Front Left': { position: [-0.5, 0, 0.3], speed: 0.9 },
+    '22U Rack Post Front Right': { position: [0.5, 0, 0.3], speed: 0.9 },
+    '22U Rack Post Back Left': { position: [-0.5, 0, -0.3], speed: 0.9 },
+    '22U Rack Post Back Right': { position: [0.5, 0, -0.3], speed: 0.9 }
   } as const;
 
-  const setGroupTransform = (
-    group: Group | null,
-    targetPosition: [number, number, number],
-    targetRotation: [number, number, number],
-    damping: number,
-    delta: number
-  ) => {
-    if (!group) return;
+  const isExplodable = (title: string) => title in explodeMap;
 
-    // 服务器组件不参与爆炸动画
-    if (group.userData?.title === 'Server stuff') {
-      return;
-    }
+  const computeTargetPosition = (
+    basePosition: [number, number, number],
+    explodeOffset: [number, number, number],
+    shouldExplode: boolean
+  ): [number, number, number] => {
+    if (!shouldExplode) return basePosition;
+    return [
+      basePosition[0] + explodeOffset[0],
+      basePosition[1] + explodeOffset[1],
+      basePosition[2] + explodeOffset[2]
+    ];
+  };
 
-    group.position.lerp(
-      {
-        x: targetPosition[0],
-        y: targetPosition[1],
-        z: targetPosition[2]
-      },
-      damping * delta * 22
-    );
-
-    group.rotation.set(
-      group.rotation.x + (targetRotation[0] - group.rotation.x) * damping,
-      group.rotation.y + (targetRotation[1] - group.rotation.y) * damping,
-      group.rotation.z + (targetRotation[2] - group.rotation.z) * damping
-    );
+  const registerExplodable = (group: Group) => {
+    if (!group.userData?.title || !isExplodable(group.userData.title)) return;
+    explodableRefs.set(group.userData.title, group);
   };
 
   useFrame((_, delta) => {
-    if (hovered) {
-      // 更新各组件位置和旋转
-      setGroupTransform(
-        upperCoolingRef.current,
-        [
-          defaultPosition[0] + explodeAmount.upper.position[0],
-          defaultPosition[1] + explodeAmount.upper.position[1],
-          defaultPosition[2] + explodeAmount.upper.position[2]
-        ],
-        [
-          defaultRotation[0] + explodeAmount.upper.rotation[0],
-          defaultRotation[1] + explodeAmount.upper.rotation[1],
-          defaultRotation[2] + explodeAmount.upper.rotation[2]
-        ],
-        damping,
-        delta
-      );
+    explodableRefs.forEach((group, title) => {
+      const config = explodeMap[title];
+      const targetPosition = computeTargetPosition(defaultPosition, config.position, hovered);
 
-      setGroupTransform(
-        lowerCoolingRef.current,
-        [
-          defaultPosition[0] + explodeAmount.lower.position[0],
-          defaultPosition[1] + explodeAmount.lower.position[1],
-          defaultPosition[2] + explodeAmount.lower.position[2]
-        ],
-        [
-          defaultRotation[0] + explodeAmount.lower.rotation[0],
-          defaultRotation[1] + explodeAmount.lower.rotation[1],
-          defaultRotation[2] + explodeAmount.lower.rotation[2]
-        ],
-        damping,
-        delta
+      group.position.lerp(
+        {
+          x: targetPosition[0],
+          y: targetPosition[1],
+          z: targetPosition[2]
+        },
+        (hovered ? config.speed : 1.2) * baseDamping * delta * 22
       );
-
-      setGroupTransform(
-        rackmountRef.current,
-        [
-          defaultPosition[0] + explodeAmount.rack.position[0],
-          defaultPosition[1] + explodeAmount.rack.position[1],
-          defaultPosition[2] + explodeAmount.rack.position[2]
-        ],
-        [
-          defaultRotation[0] + explodeAmount.rack.rotation[0],
-          defaultRotation[1] + explodeAmount.rack.rotation[1],
-          defaultRotation[2] + explodeAmount.rack.rotation[2]
-        ],
-        damping,
-        delta
-      );
-
-      setGroupTransform(
-        cabinetRef.current,
-        [
-          defaultPosition[0] + explodeAmount.cabinet.position[0],
-          defaultPosition[1] + explodeAmount.cabinet.position[1],
-          defaultPosition[2] + explodeAmount.cabinet.position[2]
-        ],
-        defaultRotation,
-        damping,
-        delta
-      );
-    } else {
-      // 恢复所有组件到原始位置和旋转，但不包括服务器组件
-      [
-        upperCoolingRef.current,
-        lowerCoolingRef.current,
-        rackmountRef.current,
-        cabinetRef.current
-      ].forEach(group =>
-        setGroupTransform(group, defaultPosition, defaultRotation, damping, delta)
-      );
-    }
+    });
   });
 
   return (
     <group
-      ref={ref}
+      ref={groupRef}
       {...props}
       dispose={null}
-      position={[-0.15, 0.1, -0.1]}
-      onPointerOver={e => {
-        console.log('onPointerOver', e);
-        setHovered(true);
-      }}
-      onPointerOut={e => {
-        console.log('onPointerOut', e);
-        setHovered(false);
-      }}
+      position={[0, 0, 0]}
+      onPointerOver={() => setHovered(true)}
+      onPointerOut={() => setHovered(false)}
+      castShadow
+      receiveShadow
     >
-      <group ref={cabinetRef} userData={{ title: 'Cabinet' }}>
-        <Cabinet unit={UNIT.mm} />
+      <group userData={{ title: 'Cabinet' }}>
+        <Cabinet unit={UNIT.mm} castShadow receiveShadow />
         <group dispose={null}>
-          <Door unit={UNIT.mm} offset={[0, 0, 330]} />
-          <AirNet unit={UNIT.mm} offset={[25, 1350, 336]} userData={{ title: 'AirNet Up' }} />
-          <AirNet unit={UNIT.mm} offset={[25, 110, 336]} userData={{ title: 'AirNet Down' }} />
+          <Door
+            ref={ref => ref && registerExplodable(ref)}
+            unit={UNIT.mm}
+            offset={[0, 0, 330]}
+            userData={{ title: 'Cabinet Door' }}
+            castShadow
+            receiveShadow
+          />
+          <AirNet
+            ref={ref => ref && registerExplodable(ref)}
+            unit={UNIT.mm}
+            offset={[25, 1350, 336]}
+            userData={{ title: 'AirNet Up' }}
+            castShadow
+            receiveShadow
+          />
+          <AirNet
+            ref={ref => ref && registerExplodable(ref)}
+            unit={UNIT.mm}
+            offset={[25, 110, 336]}
+            userData={{ title: 'AirNet Down' }}
+            castShadow
+            receiveShadow
+          />
         </group>
       </group>
 
-      <group ref={upperCoolingRef} userData={{ title: 'Cooling System up' }} dispose={null}>
-        <AirDuct unit={UNIT.mm} offset={[20, 1340, 0]} />
-        <FanDock unit={UNIT.mm} offset={[20, 1320, 0]} />
+      <group userData={{ title: 'Cooling System Up' }} dispose={null}>
+        <AirDuct
+          ref={ref => ref && registerExplodable(ref)}
+          unit={UNIT.mm}
+          offset={[20, 1340, 0]}
+          userData={{ title: 'Cooling System Air Duct Up' }}
+          castShadow
+          receiveShadow
+        />
+        <FanDock
+          ref={ref => ref && registerExplodable(ref)}
+          unit={UNIT.mm}
+          offset={[20, 1320, 0]}
+          userData={{ title: 'Cooling System Fan Dock Up' }}
+          castShadow
+          receiveShadow
+        />
       </group>
 
-      <group ref={lowerCoolingRef} userData={{ title: 'Cooling System down' }} dispose={null}>
-        <FanDock unit={UNIT.mm} offset={[20, 200, 0]} />
-        <AirDuct unit={UNIT.mm} offset={[20, 100, 0]} zReverse />
+      <group userData={{ title: 'Cooling System Down' }} dispose={null}>
+        <FanDock
+          ref={ref => ref && registerExplodable(ref)}
+          unit={UNIT.mm}
+          offset={[20, 200, 0]}
+          userData={{ title: 'Cooling System Air Duct Down' }}
+          castShadow
+          receiveShadow
+        />
+        <AirDuct
+          ref={ref => ref && registerExplodable(ref)}
+          unit={UNIT.mm}
+          offset={[20, 100, 0]}
+          zReverse
+          userData={{ title: 'Cooling System Fan Dock Down' }}
+          castShadow
+          receiveShadow
+        />
       </group>
 
-      <group ref={rackmountRef} userData={{ title: 'Rackmount' }} dispose={null}>
+      <group userData={{ title: 'Rackmount' }} dispose={null}>
         <RackPost22U
+          ref={ref => ref && registerExplodable(ref)}
           unit={UNIT.mm}
           offset={[20, 270, 217.2]}
-          userData={{ title: '22U rack post front left' }}
+          userData={{ title: '22U Rack Post Front Left' }}
+          castShadow
+          receiveShadow
         />
         <RackPost22U
+          ref={ref => ref && registerExplodable(ref)}
           unit={UNIT.mm}
           offset={[500.25, 270, 217.2]}
-          userData={{ title: '22U rack post front right' }}
+          userData={{ title: '22U Rack Post Front Right' }}
           zReverse
+          castShadow
+          receiveShadow
         />
         <RackPost22U
+          ref={ref => ref && registerExplodable(ref)}
           unit={UNIT.mm}
           offset={[20, 270, 14.7]}
-          userData={{ title: '22U rack post back left' }}
+          userData={{ title: '22U Rack Post Back Left' }}
           xReverse
+          castShadow
+          receiveShadow
         />
         <RackPost22U
+          ref={ref => ref && registerExplodable(ref)}
           unit={UNIT.mm}
           offset={[500.25, 270, 14.7]}
-          userData={{ title: '22U rack post back right' }}
+          userData={{ title: '22U Rack Post Back Right' }}
           yReverse
+          castShadow
+          receiveShadow
         />
         <group userData={{ title: 'Server stuff' }}>
-          <Server2U unit={UNIT.mm} offset={[33.7, 1162.55, 79.2]} />
-          <Tray1U unit={UNIT.mm} offset={[32.5, 702.35, 16.95]} />
-          <Tray1U unit={UNIT.mm} offset={[32.5, 702.35 - ONE_UNIT * 9, 16.95]} />
+          <Server2U unit={UNIT.mm} offset={[33.7, 1162.55, 79.2]} castShadow receiveShadow />
+          <Tray1U unit={UNIT.mm} offset={[32.5, 702.35, 16.95]} castShadow receiveShadow />
+          <Tray1U
+            unit={UNIT.mm}
+            offset={[32.5, 702.35 - ONE_UNIT * 9, 16.95]}
+            castShadow
+            receiveShadow
+          />
         </group>
       </group>
     </group>

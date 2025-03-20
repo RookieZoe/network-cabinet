@@ -11,6 +11,7 @@ import {
 } from '@react-three/drei';
 
 import NetworkCabinet from './components/network-cabinet';
+import OverlayMain from './components/overlays/ol-main';
 
 const Shadows = memo(() => (
   <AccumulativeShadows
@@ -37,19 +38,37 @@ const World = () => {
   return (
     <>
       <Shadows />
-      <spotLight position={[5, 5, 5]} penumbra={1} intensity={0.8} />
-      <ambientLight intensity={0.3} />
-      <Environment preset='studio' background blur={10} resolution={256}>
-        <color attach='background' args={['#1a1a1a']} />
+      {/* 主光源 - 从右上方打光 */}
+      <spotLight
+        position={[5, 5, 2]}
+        penumbra={1}
+        intensity={0.8}
+        castShadow
+        shadow-bias={-0.0001}
+        shadow-mapSize={[2048, 2048]}
+      />
+      {/* 辅助光源 - 左前方补光 */}
+      <spotLight
+        position={[-3, 2, 3]}
+        penumbra={1}
+        intensity={0.4}
+        angle={0.5}
+        color='#4e5362'
+      />
+      {/* 环境光 - 提供基础亮度 */}
+      <ambientLight intensity={0.2} color='#4e5362' />
+      <Environment preset='studio' background blur={1} resolution={512}>
+        <color attach='background' args={['#212f3d']} />
       </Environment>
       <CameraControls ref={cameraControlsRef as any} onEnd={e => console.log(e)} makeDefault />
       <ContactShadows
-        resolution={512}
+        resolution={1024}
         position={[0, 0, 0]}
-        opacity={1}
-        scale={10}
-        blur={2}
-        far={0.8}
+        opacity={0.8}
+        scale={20}
+        blur={1.5}
+        far={1.2}
+        color='#4e5362'
       />
     </>
   );
@@ -57,36 +76,7 @@ const World = () => {
 
 const App = () => (
   <>
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        padding: '20px',
-        zIndex: 10000,
-        pointerEvents: 'none'
-      }}
-    >
-      <div
-        style={{
-          pointerEvents: 'auto',
-          fontSize: '24px',
-          fontWeight: 'bold',
-          userSelect: 'none'
-        }}
-      >
-        <a
-          href='https://github.com/RookieZoe/network-cabinet'
-          style={{ color: '#ffffff', textDecoration: 'none' }}
-          target='_blank'
-        >
-          Network Cabinet
-        </a>
-        <div style={{ fontSize: '18px', color: '#999', marginTop: '8px' }}>
-          Still Working 🚧
-        </div>
-      </div>
-    </div>
+    <OverlayMain />
     <Canvas
       dpr={[1, 2]}
       style={{ flex: '1' }}
