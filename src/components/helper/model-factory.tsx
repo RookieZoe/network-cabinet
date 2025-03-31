@@ -1,7 +1,7 @@
 import type { Mesh, Vector3Tuple } from 'three';
 import { useGLTF } from '@react-three/drei';
 import { useMemo } from 'react';
-import type { ThreeElements } from '@react-three/fiber';
+import { type ThreeElements, applyProps } from '@react-three/fiber';
 
 export enum UNIT {
   m = 1,
@@ -17,6 +17,11 @@ type Props3D = ThreeElements['group'] & {
   zReverse?: boolean;
   xReverse?: boolean;
   yReverse?: boolean;
+
+  color?: string;
+  roughness?: number;
+  metalness?: number;
+  envMapIntensity?: number;
 };
 
 export const get3DModel = (gltfPath: string) => {
@@ -34,6 +39,10 @@ export const get3DModel = (gltfPath: string) => {
       zReverse = false,
       xReverse = false,
       yReverse = false,
+      color = '#fff',
+      roughness = 0.45,
+      metalness = 0.8,
+      envMapIntensity = 2,
       ...rest
     } = props;
 
@@ -71,13 +80,21 @@ export const get3DModel = (gltfPath: string) => {
 
             if (Array.isArray(material)) {
               material.forEach(m => {
-                m.setValues({
+                applyProps(m, {
+                  color,
+                  roughness,
+                  metalness,
+                  envMapIntensity,
                   opacity: 1 - opacity > 0.001 ? opacity : 1,
                   transparent: 1 - opacity > 0.001
                 });
               });
             } else {
-              material.setValues({
+              applyProps(material, {
+                color,
+                roughness,
+                metalness,
+                envMapIntensity,
                 opacity: 1 - opacity > 0.001 ? opacity : 1,
                 transparent: 1 - opacity > 0.001
               });
