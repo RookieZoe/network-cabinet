@@ -2,7 +2,7 @@ import type { Group } from 'three';
 import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { ThreeElements } from '@react-three/fiber';
-import { get3DModel, UNIT } from './model-factory';
+import { get3DModel, UNIT } from './helper/model-factory';
 
 const Door = get3DModel('/gltf/door.glb');
 const Cabinet = get3DModel('/gltf/cabinet.glb');
@@ -23,7 +23,7 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
   const explodableRefs = new Map<string, Group>();
 
   const defaultPosition = [0, 0, 0] as [number, number, number];
-  const defaultRotation = [0, 0, 0] as [number, number, number];
+  // const defaultRotation = [0, 0, 0] as [number, number, number];
   const baseDamping = 0.15;
 
   type ExplodeConfig = {
@@ -93,7 +93,7 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
       receiveShadow
     >
       <group userData={{ title: 'Cabinet' }}>
-        <Cabinet unit={UNIT.mm} castShadow receiveShadow />
+        <Cabinet unit={UNIT.mm} castShadow receiveShadow roughness={0.9} metalness={0.0} />
         <group dispose={null}>
           <Door
             ref={ref => ref && registerExplodable(ref)}
@@ -102,6 +102,8 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
             userData={{ title: 'Cabinet Door' }}
             castShadow
             receiveShadow
+            roughness={0.9}
+            metalness={0.0}
           />
           <AirNet
             ref={ref => ref && registerExplodable(ref)}
@@ -110,6 +112,9 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
             userData={{ title: 'AirNet Up' }}
             castShadow
             receiveShadow
+            color='#ffe500'
+            roughness={0.5}
+            metalness={0.8}
           />
           <AirNet
             ref={ref => ref && registerExplodable(ref)}
@@ -118,6 +123,9 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
             userData={{ title: 'AirNet Down' }}
             castShadow
             receiveShadow
+            color='#ffe500'
+            roughness={0.5}
+            metalness={0.8}
           />
         </group>
       </group>
@@ -130,6 +138,8 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
           userData={{ title: 'Cooling System Air Duct Up' }}
           castShadow
           receiveShadow
+          roughness={0.9}
+          metalness={0.0}
         />
         <FanDock
           ref={ref => ref && registerExplodable(ref)}
@@ -138,6 +148,8 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
           userData={{ title: 'Cooling System Fan Dock Up' }}
           castShadow
           receiveShadow
+          roughness={0.9}
+          metalness={0.0}
         />
       </group>
 
@@ -149,6 +161,8 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
           userData={{ title: 'Cooling System Air Duct Down' }}
           castShadow
           receiveShadow
+          roughness={0.9}
+          metalness={0.0}
         />
         <AirDuct
           ref={ref => ref && registerExplodable(ref)}
@@ -158,6 +172,8 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
           userData={{ title: 'Cooling System Fan Dock Down' }}
           castShadow
           receiveShadow
+          roughness={0.9}
+          metalness={0.0}
         />
       </group>
 
@@ -169,6 +185,9 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
           userData={{ title: '22U Rack Post Front Left' }}
           castShadow
           receiveShadow
+          color='#000'
+          roughness={0.5}
+          metalness={0.8}
         />
         <RackPost22U
           ref={ref => ref && registerExplodable(ref)}
@@ -178,6 +197,9 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
           zReverse
           castShadow
           receiveShadow
+          color='#000'
+          roughness={0.5}
+          metalness={0.8}
         />
         <RackPost22U
           ref={ref => ref && registerExplodable(ref)}
@@ -187,6 +209,9 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
           xReverse
           castShadow
           receiveShadow
+          color='#000'
+          roughness={0.5}
+          metalness={0.8}
         />
         <RackPost22U
           ref={ref => ref && registerExplodable(ref)}
@@ -196,15 +221,31 @@ export default function NetworkCabinet(props: ThreeElements['group']) {
           yReverse
           castShadow
           receiveShadow
+          color='#000'
+          roughness={0.5}
+          metalness={0.8}
         />
         <group userData={{ title: 'Server stuff' }}>
-          <Server2U unit={UNIT.mm} offset={[33.7, 1162.55, 79.2]} castShadow receiveShadow />
-          <Tray1U unit={UNIT.mm} offset={[32.5, 702.35, 16.95]} castShadow receiveShadow />
+          <Server2U
+            unit={UNIT.mm}
+            offset={[33.7, 1162.55, 79.2]}
+            castShadow
+            receiveShadow
+            color='#000'
+          />
+          <Tray1U
+            unit={UNIT.mm}
+            offset={[32.5, 702.35, 16.95]}
+            castShadow
+            receiveShadow
+            roughness={0.5}
+          />
           <Tray1U
             unit={UNIT.mm}
             offset={[32.5, 702.35 - ONE_UNIT * 9, 16.95]}
             castShadow
             receiveShadow
+            metalness={0.8}
           />
         </group>
       </group>
