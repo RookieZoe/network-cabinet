@@ -1,14 +1,18 @@
 import type { Mesh, Vector3Tuple } from 'three';
 import { useGLTF } from '@react-three/drei';
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { type ThreeElements, applyProps } from '@react-three/fiber';
 
-export enum UNIT {
-  m = 1,
-  dm = 0.1,
-  cm = 0.01,
-  mm = 0.001
-}
+export const UNIT = {
+  m: 1,
+  dm: 0.1,
+  cm: 0.01,
+  mm: 0.001
+} as const;
+
+export type UNIT = (typeof UNIT)[keyof typeof UNIT];
+
+type VertexSize = [x: number, y: number, z: number];
 
 type Props3D = ThreeElements['group'] & {
   unit?: UNIT;
@@ -22,6 +26,8 @@ type Props3D = ThreeElements['group'] & {
   roughness?: number;
   metalness?: number;
   envMapIntensity?: number;
+
+  onClick?: (meta: any) => void;
 };
 
 export const get3DModel = (gltfPath: string) => {
@@ -46,26 +52,49 @@ export const get3DModel = (gltfPath: string) => {
       ...rest
     } = props;
 
-    const positionOffset = useMemo<[x: number, y: number, z: number]>(() => {
-      if (!GLTF || !GLTF.nodes) {
-        return [0, 0, 0];
+    const [positionOffset, setPositionOffset] = useState<VertexSize>([0, 0, 0]);
+    const [modelSize, setModelSize] = useState<VertexSize>([0, 0, 0]);
+
+    useEffect(() => {
+      if (GLTF?.nodes) {
+        let size = [0, 0, 0] as VertexSize;
+        let offset = [0, 0, 0] as VertexSize;
+        let radius = 0;
+        Object.values(GLTF.nodes).forEach(meshNode => {
+          if (!meshNode || !(meshNode as Mesh).isMesh) {
+            return;
+          }
+          const r = (meshNode as Mesh)?.geometry?.boundingSphere?.radius || 0;
+          if (r > radius) {
+            radius = r;
+            const {
+              x: maxx = 0,
+              y: maxy = 0,
+              z: maxz = 0
+            } = (meshNode as Mesh)?.geometry?.boundingBox?.max || {};
+            const {
+              x: minx = 0,
+              y: miny = 0,
+              z: minz = 0
+            } = (meshNode as Mesh)?.geometry?.boundingBox?.min || {};
+
+            size = [
+              Math.round((maxx - minx) * 1000) / 1000 / unit,
+              Math.round((maxy - miny) * 1000) / 1000 / unit,
+              Math.round((maxz - minz) * 1000) / 1000 / unit
+            ];
+            offset = [maxx, maxy, maxz];
+          }
+        });
+
+        setModelSize(() => size);
+        setPositionOffset(() => offset);
       }
 
-      let offset = [0, 0, 0];
-      let radius = 0;
-      Object.values(GLTF.nodes).forEach(meshNode => {
-        if (!meshNode || !(meshNode as Mesh).isMesh) {
-          return;
-        }
-        const r = (meshNode as Mesh)?.geometry?.boundingSphere?.radius || 0;
-        if (r > radius) {
-          radius = r;
-          const { x = 0, y = 0, z = 0 } = (meshNode as Mesh)?.geometry?.boundingBox?.max || {};
-          offset = [x, y, z];
-        }
-      });
-
-      return offset as [x: number, y: number, z: number];
+      return () => {
+        setModelSize(() => [0, 0, 0]);
+        setPositionOffset(() => [0, 0, 0]);
+      };
     }, [GLTF]);
 
     return (
