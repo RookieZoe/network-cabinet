@@ -1,4 +1,3 @@
-import './global.less';
 import { StrictMode, useRef, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Canvas } from '@react-three/fiber';
@@ -9,19 +8,26 @@ import {
   PerformanceMonitor
 } from '@react-three/drei';
 
-import NetworkCabinet from './components/network-cabinet';
-import OverlayMain from './components/overlays/ol-main';
-import Lightformers from './components/lightformers';
+import { useStore } from '@/store';
+import { i18n, updateStaticTexts } from '@/i18n'; // 初始化i18n
+
+import NetworkCabinet from '@/components/network-cabinet';
+import Lightformers from '@/components/lightformers';
+import Overlays from '@/components/overlays';
+import InfoDisplay from '@/components/info-display';
 
 const App = () => {
   const [degraded, degrade] = useState(false);
   const cameraControlsRef = useRef<CameraControls | undefined>(undefined!);
+  const store = useStore();
 
   useEffect(() => {
-    if (cameraControlsRef.current) {
-      cameraControlsRef.current.setTarget(0, -0.2, 0);
-    }
-  }, []);
+    cameraControlsRef?.current?.dollyTo?.(store.distance, true);
+  }, [store.distance]);
+
+  useEffect(() => {
+    cameraControlsRef?.current?.reset?.(true);
+  }, [store.resetToggle]);
 
   return (
     <Canvas
@@ -38,7 +44,7 @@ const App = () => {
       eventPrefix='client'
     >
       <group position={[-0.1, -0.6, 0]}>
-        <NetworkCabinet />
+        <NetworkCabinet onClick={(e, meta) => console.log('Clicked:', e, meta)} />
       </group>
       <PerformanceMonitor onDecline={() => degrade(true)} />
       <spotLight position={[0, 15, -15]} angle={0.3} penumbra={1} castShadow intensity={1.5} />
@@ -52,7 +58,12 @@ const App = () => {
       >
         <Lightformers />
       </Environment>
-      <CameraControls ref={cameraControlsRef as any} onEnd={e => console.log(e)} makeDefault />
+      <CameraControls
+        ref={cameraControlsRef as any}
+        makeDefault
+        minDistance={0.65}
+        maxDistance={13}
+      />
       <ContactShadows
         resolution={1024}
         position={[0, -0.6, 0]}
@@ -66,9 +77,14 @@ const App = () => {
   );
 };
 
+if (i18n.isInitialized) {
+  updateStaticTexts();
+}
+
 createRoot(document.getElementById('app')!).render(
   <StrictMode>
     <App />
-    <OverlayMain />
+    <Overlays />
+    <InfoDisplay />
   </StrictMode>
 );

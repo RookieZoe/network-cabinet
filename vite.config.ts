@@ -6,6 +6,7 @@ import { createHtmlPlugin } from 'vite-plugin-html';
 
 import postcssPresetEnv from 'postcss-preset-env';
 import postcssFlexBugsFixes from 'postcss-flexbugs-fixes';
+import tailwindcss from '@tailwindcss/vite';
 
 const { dependencies, version } = require('./package.json');
 
@@ -63,7 +64,7 @@ export default ({ mode, command }: ConfigEnv): UserConfigExport => {
       },
       postcss: {
         plugins: [
-          postcssFlexBugsFixes(),
+          postcssFlexBugsFixes() as any,
           postcssPresetEnv({
             autoprefixer: {
               flexbox: 'no-2009',
@@ -103,6 +104,7 @@ export default ({ mode, command }: ConfigEnv): UserConfigExport => {
     preview: { ...serverConfig, port: 8080 },
     plugins: [
       react(),
+      tailwindcss(),
       createHtmlPlugin({
         inject: {
           data: {
