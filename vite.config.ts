@@ -32,14 +32,24 @@ const serverConfig = {
   ...proxy
 };
 
-const reactDeps = ['react', 'react-dom'];
-const utilsDeps = ['classnames', 'dompurify', 'nprogress'];
+const reactDeps = [
+  'react',
+  'react-dom',
+  'react-i18next',
+  'i18next',
+  'i18next-browser-languagedetector',
+  'valtio',
+  'iconoir-react',
+  'classnames',
+  'tailwindcss'
+];
+// const utilsDeps = [];
 
 const manualChunks = {
   'react-bundle': reactDeps,
-  'utils-bundle': utilsDeps,
+  // 'utils-bundle': utilsDeps,
   ...Object.keys(dependencies).reduce((chunks: any, name) => {
-    if (![...reactDeps, ...utilsDeps].includes(name)) {
+    if (![...reactDeps].includes(name)) {
       chunks[name] = [name];
     }
     return chunks;
