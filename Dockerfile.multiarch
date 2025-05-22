@@ -1,0 +1,17 @@
+FROM --platform=$BUILDPLATFORM node:20.18.0 AS builder
+
+WORKDIR /temp
+
+# Show build platform information for debugging
+RUN echo "Building on $BUILDPLATFORM for $TARGETPLATFORM"
+
+RUN corepack enable
+
+COPY . .
+
+RUN yarn
+RUN yarn build
+
+FROM --platform=$TARGETPLATFORM nginx:stable-alpine AS server
+COPY --from=builder /temp/dist /var/www/html
+COPY --from=builder /temp/nginx.conf /etc/nginx/conf.d/default.conf
