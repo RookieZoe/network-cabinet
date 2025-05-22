@@ -2,9 +2,9 @@
 
 # network-cabinet
 
-A project for a custom-designed, non-standard network cabinet integrated into a cabinet display page.
+A 3D modeling project featuring a custom-designed, non-standard network cabinet that can be integrated into home cabinetry.
 
-Based on React + TypeScript + Vite + Three.js
+Based on React + Three.js + TypeScript + Vite
 
 ## Project setup
 
