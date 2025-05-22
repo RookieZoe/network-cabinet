@@ -53,11 +53,9 @@ export const get3DModel = (gltfPath: string) => {
     } = props;
 
     const [positionOffset, setPositionOffset] = useState<VertexSize>([0, 0, 0]);
-    const [modelSize, setModelSize] = useState<VertexSize>([0, 0, 0]);
 
     useEffect(() => {
       if (GLTF?.nodes) {
-        let size = [0, 0, 0] as VertexSize;
         let offset = [0, 0, 0] as VertexSize;
         let radius = 0;
         Object.values(GLTF.nodes).forEach(meshNode => {
@@ -68,31 +66,19 @@ export const get3DModel = (gltfPath: string) => {
           if (r > radius) {
             radius = r;
             const {
-              x: maxx = 0,
-              y: maxy = 0,
-              z: maxz = 0
+              x = 0,
+              y = 0,
+              z = 0
             } = (meshNode as Mesh)?.geometry?.boundingBox?.max || {};
-            const {
-              x: minx = 0,
-              y: miny = 0,
-              z: minz = 0
-            } = (meshNode as Mesh)?.geometry?.boundingBox?.min || {};
 
-            size = [
-              Math.round((maxx - minx) * 1000) / 1000 / unit,
-              Math.round((maxy - miny) * 1000) / 1000 / unit,
-              Math.round((maxz - minz) * 1000) / 1000 / unit
-            ];
-            offset = [maxx, maxy, maxz];
+            offset = [x, y, z];
           }
         });
 
-        setModelSize(() => size);
         setPositionOffset(() => offset);
       }
 
       return () => {
-        setModelSize(() => [0, 0, 0]);
         setPositionOffset(() => [0, 0, 0]);
       };
     }, [GLTF]);
