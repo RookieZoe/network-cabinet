@@ -8,6 +8,11 @@ Built with React + Three.js + TypeScript + Vite
 
 See the project Releases, which include the model STEP files and some dimension annotation files.
 
+## Real Product Photos
+
+![closedoor](./imags/closedoor.jpg)
+![opendoor](./imags/opendoor.jpg)
+
 ## Project BOM List
 
 Project components are divided into three categories:

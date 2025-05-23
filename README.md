@@ -10,6 +10,11 @@
 
 见项目 Releases，包含了模型 STEP 和部分尺寸标注文件。
 
+## 实际效果展示
+
+![closedoor](./imags/closedoor.jpg)
+![opendoor](./imags/opendoor.jpg)
+
 ## 项目 BOM 清单
 
 项目部件分为三类：
