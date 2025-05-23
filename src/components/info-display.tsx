@@ -31,7 +31,7 @@ const InfoDisplay = () => {
       ? `${t('app.size')}${selectedModel.size.width}${selectedModel.size.unit} × ${selectedModel.size.depth}${selectedModel.size.unit} × ${selectedModel.size.height}${selectedModel.size.unit}`
       : '',
     40,
-    descriptionTypewriter.isComplete ? 500 : 5000
+    descriptionTypewriter.isComplete ? 500 : 15000
   );
 
   useEffect(() => {
@@ -44,14 +44,20 @@ const InfoDisplay = () => {
       };
 
       const container = containerRef.current;
-      container.addEventListener('animationend', handleAnimationEnd, { once: true });
+      container?.addEventListener?.('animationend', handleAnimationEnd, { once: true });
 
       // Clean up the event listener if the component unmounts during animation
       return () => {
-        container.removeEventListener('animationend', handleAnimationEnd);
+        container?.removeEventListener?.('animationend', handleAnimationEnd);
       };
     }
   }, [isClosing, store]);
+
+  useEffect(() => {
+    if (!store.explosive) {
+      setIsClosing(true);
+    }
+  }, [store.explosive]);
 
   if (!selectedModel || (!infoShow && !isClosing)) {
     return null;
