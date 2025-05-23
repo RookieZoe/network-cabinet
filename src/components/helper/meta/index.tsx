@@ -135,7 +135,7 @@ export const modelParts: Record<
   RackPost: {
     zh: {
       name: '机柜立柱',
-      description: '成品 22U 立柱，共 4 根，可以根据实机情况缩减为 2 根',
+      description: '成品 22U 立柱，共 4 根，可以根据实际情况缩减为 2 根',
       size: {
         width: 62,
         depth: 29,
