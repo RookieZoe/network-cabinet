@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const usePopupPositioning = (
-  containerRef: React.RefObject<HTMLDivElement | null>,
+  containerRef: React.RefObject<HTMLElement | null>,
   isVisible: boolean,
   initialClickPosition: { x: number; y: number } | null
 ) => {

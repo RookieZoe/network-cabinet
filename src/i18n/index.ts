@@ -44,7 +44,7 @@ i18n
       escapeValue: false
     },
     detection: {
-      order: ['htmlTag', 'navigator']
+      order: ['navigator']
     }
   });
 
