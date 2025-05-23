@@ -5,6 +5,6 @@ export const zh_CN = {
     noScript: '很抱歉，我们的系统需要启用JavaScript才能正常工作。请启用它以继续。',
     description: '一个定制设计的非标准网络机柜，集成到橱柜中。',
     explodedView: '爆炸图：',
-    size: '长×深×高：'
+    size: '宽×深×高：'
   }
 };
