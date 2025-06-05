@@ -119,7 +119,10 @@ export default ({ mode, command }: ConfigEnv): UserConfigExport => {
         inject: {
           data: {
             injectCss: '',
-            injectScript: ''
+            injectScript:
+              mode === 'development'
+                ? ''
+                : `<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "2fe7181efcb243be9bfe48ecb3627eb0"}'></script><!-- End Cloudflare Web Analytics -->`
           }
         },
         minify: true
